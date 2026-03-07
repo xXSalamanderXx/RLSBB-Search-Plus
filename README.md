@@ -1,5 +1,7 @@
 # RLSBB Search+ 🔎🟧
 
+[![RLSBB-Search-Plus.png](https://i.postimg.cc/pyMbx68Y/RLSBB-Search-Plus.png)](https://postimg.cc/n92wGT3C)
+
 A clean userscript that upgrades the RLSBB browsing experience with smarter filtering, category switching, custom search behavior, and a bright neon-orange UI.
 
 Built for people who want to find releases faster without fighting the default layout.
