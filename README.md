@@ -25,6 +25,18 @@ Built for people who want to find releases faster without fighting the default l
 - **Stop loading button** while scanning pages
 - **Empty-state message** when no results match
 
+### 🔤 Smart Text Matching
+
+- Case-insensitive matching
+- Accent normalization
+- Better handling for dots, dashes, spaces, and other separators
+- More forgiving matching for inconsistent release naming
+
+### 📕 Custom Pagination
+- Native pagination is hidden
+- A cleaner custom pagination that dynamically shows filtered results, with live changes depending on your filters.
+- Modern intuitive page number buttons
+
 ## Supported Domains 🌍
 
 Works across these domains:
