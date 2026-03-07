@@ -25,6 +25,8 @@ Built for people who want to find releases faster without fighting the default l
 - **Stop loading button** while scanning pages
 - **Empty-state message** when no results match
 
+---
+
 ### 🔤 Smart Text Matching
 
 - Case-insensitive matching
@@ -37,6 +39,8 @@ Built for people who want to find releases faster without fighting the default l
 - A cleaner custom pagination that dynamically shows filtered results, with live changes depending on your filters.
 - Modern intuitive page number buttons
 
+---
+
 ## Supported Domains 🌍
 
 Works across these domains:
@@ -47,7 +51,7 @@ Works across these domains:
 - `rlsbb.cc`
 - `rlsbb.in`
 
----
+----
 
 ## Why Use It 🚀
 
