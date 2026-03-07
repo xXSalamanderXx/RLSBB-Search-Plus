@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RLSBB Search+
 // @namespace    https://rlsbb.ru/
-// @version      1.0.1
+// @version      1.0.2
 // @description  Filtering, live custom search, safer clear handling, custom pagination, keyword highlighting, and category switching for RLSBB
 // @author       xXSalamanderXx
 // @homepage     https://github.com/xXSalamanderXx/RLSBB-Search-Plus/
@@ -532,7 +532,7 @@
         if (!emptyState) {
             emptyState = document.createElement('div');
             emptyState.id = 'fs-empty-state';
-            emptyState.textContent = 'Press Clear To Return Normal Results Or Search In The Custom Search';
+            emptyState.textContent = 'No Results: Press Clear To Reset Search Filters or Modify Your Current Filters';
             itemGrid.parentNode.insertBefore(emptyState, itemGrid);
         }
 
