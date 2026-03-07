@@ -66,6 +66,22 @@
     const seenReleaseLinks = new Set();
     const linkCache = new Map();
 
+    const LINK_LABEL_MAP = [
+        [/rapidgator|rapi?dgator/i, 'Rapidgator'],
+        [/nitroflare|ni?t?roflare/i, 'Nitroflare'],
+        [/torrent/i, 'Torrent'],
+        [/subtitle/i, 'Subtitles'],
+        [/screenshot/i, 'Screenshot'],
+        [/nfo/i, 'NFO'],
+        [/backup/i, 'Backup'],
+        [/uploaded|uploadgig/i, 'Upload'],
+        [/ddl/i, 'DDL'],
+        [/mega/i, 'Mega'],
+        [/1fichier/i, '1Fichier'],
+        [/katfile/i, 'Katfile'],
+        [/filefox/i, 'Filefox']
+    ];
+
     function injectStyles() {
         if (document.getElementById(`${SCRIPT_ID}-styles`)) return;
 
@@ -323,7 +339,6 @@
     function updateRecommendedUseNotice() {
         const note = document.getElementById('f-category-note');
         if (!note) return;
-
         const shouldShow = !isMoviesCategoryPage() && !isTvShowsCategoryPage();
         note.style.display = shouldShow ? 'block' : 'none';
     }
@@ -354,9 +369,7 @@
 
         const raw = [];
         for (const selector of selectors) {
-            for (const node of scope.querySelectorAll(selector)) {
-                raw.push(node);
-            }
+            for (const node of scope.querySelectorAll(selector)) raw.push(node);
         }
 
         const unique = Array.from(new Set(raw)).filter(node => {
@@ -490,7 +503,7 @@
         if (!emptyState) {
             emptyState = document.createElement('div');
             emptyState.id = 'fs-empty-state';
-            emptyState.textContent = 'NO RESULTS: Modify Your Filters or Press Clear To Reset Results.';
+            emptyState.textContent = 'Press Clear To Return Normal Results or Search In The Custom Search';
             itemGrid.parentNode.insertBefore(emptyState, itemGrid);
         }
 
@@ -510,9 +523,7 @@
 
     function buildPageUrl(pageNum) {
         const base = new URL(baseListingUrl || getBaseListingUrl());
-
         if (pageNum <= 1) return base.toString();
-
         const cleanPath = base.pathname.replace(/\/+$/, '');
         return `${base.origin}${cleanPath}/page/${pageNum}/${base.search}`;
     }
@@ -1183,25 +1194,126 @@
         }
     }
 
+    function cleanLinkLabel(text) {
+        return (text || '')
+            .replace(/\s+/g, ' ')
+            .replace(/[–—-]+/g, ' ')
+            .trim();
+    }
+
+    function getMappedLabel(text) {
+        const clean = cleanLinkLabel(text);
+        for (const [pattern, label] of LINK_LABEL_MAP) {
+            if (pattern.test(clean)) return label;
+        }
+        return '';
+    }
+
     function getReadableHost(url) {
         try {
-            const host = new URL(url).hostname.replace(/^www\./, '');
+            const host = new URL(url, location.href).hostname.replace(/^www\./, '');
             return host;
         } catch (_) {
             return 'Link';
         }
     }
 
-    function isLikelyDownloadLink(url) {
+    function isJunkHref(href) {
+        if (!href) return true;
+        return /^(#|javascript:|mailto:|tel:)/i.test(href.trim());
+    }
+
+    function shouldSkipInternalNavLink(anchor, absUrl) {
         try {
-            const u = new URL(url, location.href);
-            const sameHost = u.hostname.replace(/^www\./, '') === location.hostname.replace(/^www\./, '');
-            if (sameHost) return false;
-            if (/^(mailto|javascript):/i.test(u.protocol)) return false;
-            return /^https?:/i.test(u.protocol);
+            const currentHost = location.hostname.replace(/^www\./, '');
+            const targetHost = new URL(absUrl).hostname.replace(/^www\./, '');
+            if (targetHost !== currentHost) return false;
+
+            const text = cleanLinkLabel(anchor.textContent);
+            const rel = (anchor.getAttribute('rel') || '').toLowerCase();
+            const cls = (anchor.className || '').toLowerCase();
+            const href = absUrl.toLowerCase();
+
+            if (rel.includes('bookmark')) return true;
+            if (/comment|reply|author|category|tag|older|newer|next|previous|page\/\d+/.test(href)) return true;
+            if (/read more|continue reading|older|newer|next|previous/i.test(text)) return true;
+            if (/category|tag|author|comments|reply|nav/.test(cls)) return true;
+
+            return false;
         } catch (_) {
             return false;
         }
+    }
+
+    function buildPanelLabel(anchor, absUrl) {
+        const ownText = cleanLinkLabel(anchor.textContent);
+        const parentText = cleanLinkLabel(anchor.parentElement?.textContent || '');
+        const parentMapped = getMappedLabel(parentText);
+        const ownMapped = getMappedLabel(ownText);
+
+        if (parentMapped === 'Backup' && /rapidgator/i.test(ownText)) return 'Rapidgator Backup';
+        if (parentMapped === 'Backup' && /nitroflare/i.test(ownText)) return 'Nitroflare Backup';
+
+        if (ownMapped) {
+            if (ownMapped === 'Backup') {
+                if (/rapidgator/i.test(parentText)) return 'Rapidgator Backup';
+                if (/nitroflare/i.test(parentText)) return 'Nitroflare Backup';
+                return 'Backup';
+            }
+            return ownMapped;
+        }
+
+        if (parentMapped) {
+            if (parentMapped === 'Backup') {
+                if (/rapidgator/i.test(ownText)) return 'Rapidgator Backup';
+                if (/nitroflare/i.test(ownText)) return 'Nitroflare Backup';
+            }
+            return parentMapped;
+        }
+
+        const host = getReadableHost(absUrl);
+        if (/rapidgator/i.test(host)) return 'Rapidgator';
+        if (/nitroflare/i.test(host)) return 'Nitroflare';
+        return host;
+    }
+
+    function collectStructuredLinks(content, pageUrl) {
+        const links = [];
+        const anchors = Array.from(content.querySelectorAll('a[href]'));
+
+        for (const a of anchors) {
+            const href = a.getAttribute('href') || '';
+            if (isJunkHref(href)) continue;
+
+            const absUrl = new URL(href, pageUrl).href;
+            const label = buildPanelLabel(a, absUrl);
+
+            if (!label && shouldSkipInternalNavLink(a, absUrl)) continue;
+
+            const ownText = cleanLinkLabel(a.textContent);
+            const parentText = cleanLinkLabel(a.parentElement?.textContent || '');
+            const interesting =
+                !!label &&
+                (
+                    !!getMappedLabel(ownText) ||
+                    !!getMappedLabel(parentText) ||
+                    /rapidgator|nitroflare|torrent|subtitle|screenshot|nfo|backup/i.test(ownText + ' ' + parentText)
+                );
+
+            if (!interesting) {
+                if (shouldSkipInternalNavLink(a, absUrl)) continue;
+                const targetHost = new URL(absUrl).hostname.replace(/^www\./, '');
+                const currentHost = location.hostname.replace(/^www\./, '');
+                if (targetHost === currentHost) continue;
+            }
+
+            links.push({
+                host: label || getReadableHost(absUrl),
+                url: absUrl
+            });
+        }
+
+        return links;
     }
 
     async function fetchLinks(url) {
@@ -1212,20 +1324,12 @@
             if (!res.ok) return null;
 
             const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
-            const content = doc.querySelector('.entry-content, .post-content, .entry, article, .post') || doc.body;
-            const links = [];
+            const content = doc.querySelector('.entry-content, .post-content, .entry, article .post-content, article .entry, article') || doc.body;
 
-            for (const a of content.querySelectorAll('a[href]')) {
-                const href = a.href;
-                if (!isLikelyDownloadLink(href)) continue;
-                links.push({
-                    host: getReadableHost(href),
-                    url: href
-                });
-            }
+            const links = collectStructuredLinks(content, url);
 
             const deduped = Array.from(
-                new Map(links.map(link => [link.url, link])).values()
+                new Map(links.map(link => [`${link.host}||${link.url}`, link])).values()
             );
 
             linkCache.set(url, deduped);
@@ -1308,13 +1412,32 @@
                     grouped[l.host].push(l.url);
                 }
 
+                const HOST_COLORS = {
+                    Rapidgator: '#00b4d8',
+                    'Rapidgator Backup': '#38bdf8',
+                    Nitroflare: '#f59e0b',
+                    'Nitroflare Backup': '#fbbf24',
+                    Torrent: '#22c55e',
+                    Subtitles: '#a78bfa',
+                    Screenshot: '#ec4899',
+                    NFO: '#94a3b8',
+                    Backup: '#c084fc',
+                    Upload: '#34d399',
+                    DDL: '#9ca3af',
+                    Mega: '#ef4444',
+                    '1Fichier': '#8b5cf6',
+                    Katfile: '#f472b6',
+                    Filefox: '#fb923c'
+                };
+
                 panel.innerHTML = Object.entries(grouped).map(([host, urls]) => {
+                    const color = HOST_COLORS[host] || ACCENT;
                     const allUrls = urls.join('\n');
 
                     return `<div style="margin-bottom:8px;">
                         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:3px;">
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${ACCENT}; flex-shrink:0;"></span>
+                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${color}; flex-shrink:0;"></span>
                                 <span style="color:#9ca3af; text-transform:uppercase; font-size:10px; letter-spacing:0.5px; font-weight:600;">${host}</span>
                             </div>
                             ${urls.length > 1 ? `<span class="fs-copy-btn" data-url="${allUrls}" data-label="📋 Copy all" title="Copy all ${host} links"
@@ -1389,9 +1512,7 @@
     }
 
     function injectLinkButtons(container) {
-        for (const item of findPostItems(container)) {
-            injectLinkButton(item);
-        }
+        for (const item of findPostItems(container)) injectLinkButton(item);
     }
 
     const INPUT_STYLE = `
