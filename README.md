@@ -33,6 +33,8 @@ Works across these domains:
 - `rlsbb.cc`
 - `rlsbb.in`
 
+---
+
 ## Why Use It 🚀
 
 RLSBB Search+ adds a cleaner, faster, and more practical way to browse releases.
@@ -85,6 +87,8 @@ The UI is improved without overdoing it:
 - Clearer spacing
 - Highlighted keywords for important link terms
 
+---
+
 ## Fast Install ⚡
 
 1. Install a userscript extension first:
@@ -106,6 +110,8 @@ The UI is improved without overdoing it:
 - Press **Search** to scan more pages
 - Press **Stop Page Loading** to stop scanning
 - Press **Clear** to reset all filters
+  
+---
 
 ## Disclaimer
 
@@ -123,4 +129,4 @@ By accessing, using, modifying, or distributing this repository, you agree that:
 
 ## License 📄
 
-Licensed under the **MIT License**.
+Licensed under the [MIT License](LICENSE)
