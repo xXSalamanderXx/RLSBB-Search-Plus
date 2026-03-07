@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RLSBB Search+
 // @namespace    https://rlsbb.ru/
-// @version      1.0
+// @version      1.0.1
 // @description  Filtering, live custom search, safer clear handling, custom pagination, keyword highlighting, and category switching for RLSBB
 // @author       xXSalamanderXx
 // @homepage     https://github.com/xXSalamanderXx/RLSBB-Search-Plus/
@@ -45,6 +45,9 @@
     const SEARCH_ORANGE_GLOW = 'rgba(255,122,0,0.28)';
     const SEARCH_STATUS_ORANGE = '#ff9b33';
 
+    const MAIN_BOX_GLOW = 'rgba(255,122,0,0.18)';
+    const MAIN_BOX_GLOW_HOVER = 'rgba(255,122,0,0.34)';
+
     const KEYWORD_REGEX = /\b(rapidgator|nitroflare|torrent)\b/gi;
 
     let isLoadingPages = false;
@@ -74,7 +77,7 @@
         style.id = `${SCRIPT_ID}-styles`;
         style.textContent = `
             @keyframes fs-activity-scan {
-                0%   { background-position: 200% 0; }
+                0% { background-position: 200% 0; }
                 100% { background-position: -200% 0; }
             }
 
@@ -94,9 +97,19 @@
                 color: #f3f4f6;
                 font-size: 13px;
                 box-shadow:
-                    0 4px 20px rgba(0,0,0,0.25),
-                    0 0 0 1px rgba(255,122,0,0.08) inset,
-                    0 0 20px rgba(255,122,0,0.06);
+                    0 6px 24px rgba(0,0,0,0.28),
+                    0 0 0 1px rgba(255,122,0,0.10) inset,
+                    0 0 26px ${MAIN_BOX_GLOW},
+                    0 0 44px rgba(255,122,0,0.10);
+                transition: box-shadow 0.22s ease, transform 0.22s ease;
+            }
+
+            #${SCRIPT_ID}-bar:hover {
+                box-shadow:
+                    0 10px 28px rgba(0,0,0,0.34),
+                    0 0 0 1px rgba(255,122,0,0.14) inset,
+                    0 0 34px ${MAIN_BOX_GLOW_HOVER},
+                    0 0 56px rgba(255,122,0,0.16);
             }
 
             #${SCRIPT_ID}-bar * {
@@ -140,6 +153,14 @@
                 flex: 1 1 340px;
                 min-width: 240px;
                 max-width: 100%;
+            }
+
+            #${SCRIPT_ID}-bar .fs-size-pair {
+                display: inline-flex;
+                gap: 8px;
+                align-items: center;
+                flex: 0 0 auto;
+                white-space: nowrap;
             }
 
             #${SCRIPT_ID}-bar .fs-section-line {
@@ -311,6 +332,10 @@
                     flex: 1 1 100%;
                     min-width: 100%;
                 }
+
+                #${SCRIPT_ID}-bar .fs-size-pair {
+                    flex-wrap: nowrap;
+                }
             }
         `;
         document.head.appendChild(style);
@@ -379,10 +404,12 @@
         const unique = Array.from(new Set(raw)).filter(node => {
             if (!(node instanceof Element)) return false;
             if (node.closest('#' + SCRIPT_ID + '-bar')) return false;
+
             if (node.querySelector('article.post, article.hentry, article[id^="post-"]')) {
                 const inner = node.querySelector('article.post, article.hentry, article[id^="post-"]');
                 if (inner && inner !== node) return false;
             }
+
             return !!getDetailUrl(node) || !!node.textContent.trim();
         });
 
@@ -435,9 +462,7 @@
     }
 
     function getItemKey(item) {
-        return getDetailUrl(item) ||
-               getTitleNode(item)?.textContent?.trim() ||
-               getItemText(item).slice(0, 300);
+        return getDetailUrl(item) || getTitleNode(item)?.textContent?.trim() || getItemText(item).slice(0, 300);
     }
 
     function findNativePaginationElement(doc = document) {
@@ -507,7 +532,7 @@
         if (!emptyState) {
             emptyState = document.createElement('div');
             emptyState.id = 'fs-empty-state';
-            emptyState.textContent = 'Press Clear To Return Normal Results or Search In The Custom Search';
+            emptyState.textContent = 'Press Clear To Return Normal Results Or Search In The Custom Search';
             itemGrid.parentNode.insertBefore(emptyState, itemGrid);
         }
 
@@ -586,6 +611,7 @@
         const text = getItemText(item);
         const match = text.match(/(\d+(\.\d+)?)\s*(GB|MB)\b/i);
         if (!match) return null;
+
         const value = parseFloat(match[1]);
         const unit = match[3].toUpperCase();
         return unit === 'MB' ? value / 1024 : value;
@@ -593,7 +619,6 @@
 
     function getResolution(item) {
         const text = getItemText(item);
-
         if (/\b2160p\b|\b4k\b|\buhd\b/i.test(text)) return '2160p';
         if (/\b1440p\b/i.test(text)) return '1440p';
         if (/\b1080p\b/i.test(text)) return '1080p';
@@ -601,7 +626,6 @@
         if (/\b576p\b/i.test(text)) return '576p';
         if (/\b480p\b/i.test(text)) return '480p';
         if (/\b360p\b/i.test(text)) return '360p';
-
         return '';
     }
 
@@ -633,11 +657,9 @@
             if (g) groups.add(g);
         }
 
-        const sorted = Array.from(groups).sort((a, b) =>
-            a.toLowerCase().localeCompare(b.toLowerCase())
-        );
-
+        const sorted = Array.from(groups).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
         select.innerHTML = '<option value="">All Release Groups</option>';
+
         for (const g of sorted) {
             const opt = document.createElement('option');
             opt.value = g.toLowerCase();
@@ -682,6 +704,7 @@
             if (el.id === 'f-category') continue;
             data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
         }
+
         try {
             localStorage.setItem(`${SCRIPT_ID}-filters`, JSON.stringify(data));
         } catch (_) {}
@@ -745,11 +768,8 @@
             nodes.forEach(node => {
                 if (node.closest('#' + SCRIPT_ID + '-bar')) return;
                 const text = (node.textContent || '').trim();
-                if (KEYWORD_REGEX.test(text)) {
-                    node.classList.add('fs-linkword-highlight');
-                } else {
-                    node.classList.remove('fs-linkword-highlight');
-                }
+                if (KEYWORD_REGEX.test(text)) node.classList.add('fs-linkword-highlight');
+                else node.classList.remove('fs-linkword-highlight');
                 KEYWORD_REGEX.lastIndex = 0;
             });
         }
@@ -794,7 +814,7 @@
         if (searchStatus) {
             if (f.search) {
                 searchStatus.textContent = isLoadingPages
-                    ? `${searchMatches} Results Found For Custom Search — searching more pages...`
+                    ? `${searchMatches} Results Found For Custom Search — Searching More Pages....`
                     : `${searchMatches} Results Found For Custom Search`;
                 searchStatus.style.display = 'block';
                 searchStatus.style.color = SEARCH_STATUS_ORANGE;
@@ -891,7 +911,7 @@
         if (stopBtn) stopBtn.disabled = true;
         if (loadBtn) loadBtn.disabled = true;
 
-        setStatus('Stopping search...');
+        setStatus('Stopping Search....');
         hideProgress(true);
 
         if (!didAbort) {
@@ -975,15 +995,11 @@
             styleVisibleResults(container);
             hideNativePagination();
             renderCustomPagination();
-            updateEmptyState(
-                container,
-                findPostItems(container).some(item => item.style.display !== 'none')
-            );
+            updateEmptyState(container, findPostItems(container).some(item => item.style.display !== 'none'));
         } finally {
             setTimeout(() => {
                 resumeObserver();
             }, 50);
-
             clearInProgress = false;
         }
     }
@@ -992,7 +1008,7 @@
         const itemGrid = getActiveResultsGrid(container);
         const firstPageUrl = buildPageUrl(1);
 
-        setStatus('Loading first page...');
+        setStatus('Loading First Page....');
 
         const res = await fetch(firstPageUrl, {
             credentials: 'same-origin',
@@ -1072,9 +1088,9 @@
 
             const firstState = applyFilters(container);
             if (getFilterValues().search) {
-                setStatus(`${firstState.searchMatches} result(s) found so far — scanned ${loaded} page(s)`);
+                setStatus(`${firstState.searchMatches} Result(s) Found So Far — Scanned ${loaded} Page(s)`);
             } else {
-                setStatus(`${loaded} page(s) loaded`);
+                setStatus(`${loaded} Page(s) Loaded`);
             }
 
             for (let p = 2; ; p++) {
@@ -1083,7 +1099,7 @@
                     break;
                 }
 
-                setStatus(`Checking page ${p}`);
+                setStatus(`Searching Page ${p} For Results....`);
 
                 const url = buildPageUrl(p);
                 const res = await fetch(url, {
@@ -1144,11 +1160,10 @@
                 loaded++;
 
                 const state = applyFilters(container);
-
                 if (getFilterValues().search) {
-                    setStatus(`${state.searchMatches} result(s) found so far — scanned ${loaded} page(s)`);
+                    setStatus(`${state.searchMatches} Result(s) Found So Far — Scanned ${loaded} Page(s)`);
                 } else {
-                    setStatus(`${loaded} page(s) loaded`);
+                    setStatus(`${loaded} Page(s) Loaded`);
                 }
 
                 await new Promise(r => setTimeout(r, 60));
@@ -1170,15 +1185,19 @@
 
             if (!clearInProgress) {
                 if (stopReason === 'stopped' || wasStopping) {
-                    setStatus(getFilterValues().search
-                        ? `${finalState.searchMatches} result(s) found`
-                        : (loaded > 0 ? `Stopped — ${loaded} page(s) loaded` : 'Search stopped'));
+                    setStatus(
+                        getFilterValues().search
+                            ? `${finalState.searchMatches} Result(s) Found`
+                            : (loaded > 0 ? `Stopped — ${loaded} Page(s) Loaded` : 'Search Stopped')
+                    );
                 } else if (stopReason === 'error') {
-                    setStatus('Error loading pages');
+                    setStatus('Error Loading Pages');
                 } else {
-                    setStatus(getFilterValues().search
-                        ? `${finalState.searchMatches} result(s) found`
-                        : (loaded > 0 ? `${loaded} page(s) loaded` : 'No more pages to load'));
+                    setStatus(
+                        getFilterValues().search
+                            ? `${finalState.searchMatches} Result(s) Found`
+                            : (loaded > 0 ? `${loaded} Page(s) Loaded` : 'No More Pages To Load')
+                    );
                 }
             }
 
@@ -1194,13 +1213,13 @@
             setTimeout(() => {
                 const t = document.getElementById('f-load-status')?.textContent || '';
                 if (
-                    t === 'Error loading pages' ||
-                    t === 'Search stopped' ||
-                    t === 'Stopping search...' ||
+                    t === 'Error Loading Pages' ||
+                    t === 'Search Stopped' ||
+                    t === 'Stopping Search....' ||
                     t.startsWith('Stopped —') ||
-                    t.endsWith('page(s) loaded') ||
-                    t.endsWith('result(s) found') ||
-                    t === 'No more pages to load'
+                    t.endsWith('Page(s) Loaded') ||
+                    t.endsWith('Result(s) Found') ||
+                    t === 'No More Pages To Load'
                 ) {
                     setStatus('');
                 }
@@ -1256,11 +1275,13 @@
                     <input type="number" id="f-rating" placeholder="Minimum Rating" step="0.1" min="0" max="10"
                         style="${INPUT_STYLE} width:145px;">
 
-                    <input type="number" id="f-minsize" placeholder="Min GB" min="0"
-                        style="${INPUT_STYLE} width:88px;">
+                    <span class="fs-size-pair">
+                        <input type="number" id="f-minsize" placeholder="Min GB" min="0"
+                            style="${INPUT_STYLE} width:88px;">
 
-                    <input type="number" id="f-maxsize" placeholder="Max GB" min="0"
-                        style="${INPUT_STYLE} width:88px;">
+                        <input type="number" id="f-maxsize" placeholder="Max GB" min="0"
+                            style="${INPUT_STYLE} width:88px;">
+                    </span>
                 </div>
 
                 <div class="fs-toolbar-right">
@@ -1294,7 +1315,7 @@
                                border:1px solid rgba(245,158,11,0.35);
                                border-radius:6px; padding:5px 12px; cursor:pointer; font-size:13px;
                                height:30px; box-sizing:border-box; transition:all 0.2s; white-space:nowrap;">
-                        ⏹ Stop Page Loading
+                        Stop Page Loading
                     </button>
 
                     <button id="f-loadall"
@@ -1327,7 +1348,7 @@
                                border:1px solid rgba(248,113,113,0.35);
                                border-radius:6px; padding:5px 12px; cursor:pointer; font-size:13px;
                                height:30px; box-sizing:border-box; transition:all 0.2s; white-space:nowrap;">
-                        ✕ Clear
+                        Clear
                     </button>
                 </div>
             </div>
@@ -1459,7 +1480,7 @@
             await loadAllPages(container);
         });
 
-        searchInput.addEventListener('keydown', (e) => {
+        searchInput.addEventListener('keydown', e => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 if (!isLoadingPages && !clearInProgress && !isStoppingNow) {
@@ -1476,9 +1497,13 @@
         bar.querySelector('#f-category').addEventListener('change', function () {
             const targetUrl = this.value;
             if (!targetUrl) return;
+
             const here = window.location.href.replace(/\/+$/, '/');
             const there = targetUrl.replace(/\/+$/, '/');
-            if (here !== there) window.location.href = targetUrl;
+
+            if (here !== there) {
+                window.location.href = targetUrl;
+            }
         });
 
         searchInput.addEventListener('input', () => applyFilters(container));
@@ -1492,8 +1517,11 @@
 
     function waitForContainer() {
         const container = findContainer();
-        if (container) init(container);
-        else setTimeout(waitForContainer, 400);
+        if (container) {
+            init(container);
+        } else {
+            setTimeout(waitForContainer, 400);
+        }
     }
 
     waitForContainer();
