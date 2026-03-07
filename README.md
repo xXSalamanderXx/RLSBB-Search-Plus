@@ -1,2 +1,112 @@
-# RLSBB-Search-Plus
-A Tampermonkey userscript that adds powerful filtering, searching and multi-page loading to RLSBB 
+# RLSBB Search+ 🔎🟧
+
+A clean userscript that upgrades the RLSBB browsing experience with smarter filtering, category switching, custom search behavior, and a bright neon-orange UI.
+
+Built for people who want to find releases faster without fighting the default layout.
+
+## Highlights ✨
+
+- **Custom search** across loaded results
+- **Movies / TV Shows category switcher**
+- **Current category detection**
+- **Homepage guidance box** with recommended search workflow
+- **Neon orange styling**
+- **Resolution filters**: 2160p, 1440p, 1080p, 720p, 576p, 480p, 360p
+- **Dolby Vision and HDR filters**
+- **Minimum rating filter**
+- **Minimum and maximum size filters**
+- **Release group filter**
+- **Custom pagination styling**
+- **Arrow-based previous / next buttons**
+- **Orange keyword highlighting** for `Rapidgator`, `Nitroflare`, and `Torrent`
+- **Clear button** for instant reset
+- **Stop loading button** while scanning pages
+- **Empty-state message** when no results match
+
+## Supported Domains 🌍
+
+Works across these domains:
+
+- `rlsbb.ru`
+- `rlsbb.to`
+- `rlsbb.com`
+- `rlsbb.cc`
+- `rlsbb.in`
+
+## Why Use It 🚀
+
+RLSBB Search+ adds a cleaner, faster, and more practical way to browse releases.
+
+Instead of relying only on the default site flow, you get a focused interface for filtering, narrowing results, and moving between key categories quickly.
+
+## Features 🧩
+
+### Category Switching
+Quickly jump between:
+
+- **Movies**
+- **TV Shows**
+
+The selector automatically detects if you are already on one of those category pages. If you are on the main domain or another page, it shows **Select Category** and redirects once you choose one.
+
+### Better Filtering
+Narrow results using:
+
+- Dolby Vision
+- HDR
+- Resolution
+- Minimum rating
+- Minimum size
+- Maximum size
+- Release group
+- Custom text search
+
+This makes large result pages much easier to work with.
+
+### Smarter Search Flow
+The homepage notice encourages a simple workflow:
+
+1. Search on the main site first
+2. Use this script to narrow down your results
+3. Scan more pages only when needed
+
+### Cleaner Pagination
+Pagination is easier to use with:
+
+- Styled page buttons
+- Arrow symbols for previous and next
+- Better visual consistency with the orange theme
+
+### Visual Polish
+The UI is improved without overdoing it:
+
+- Neon orange accents
+- Rounded buttons and panels
+- Clearer spacing
+- Highlighted keywords for important link terms
+
+## Fast Install ⚡
+
+1. Install a userscript extension first:
+   - [Tampermonkey](https://www.tampermonkey.net/)
+   - [Violentmonkey](https://violentmonkey.github.io/get-it/)
+
+2. After the extension is installed, click the userscript link:
+   - [Install RLSBB Search+](https://github.com/xXSalamanderXx/RLSBB-Search-Plus/raw/refs/heads/main/rlsbb-search-plus.user.js)
+
+3. Your extension should open an install prompt automatically.
+
+4. Confirm the install, then open any supported RLSBB domain and start using it.
+
+## Usage 📌
+
+- Use the category selector to switch between Movies and TV Shows
+- Enter a term in the custom search box
+- Apply filters like resolution, HDR, DV, size, rating, or group
+- Press **Search** to scan more pages
+- Press **Stop Page Loading** to stop scanning
+- Press **Clear** to reset all filters
+
+## License 📄
+
+Licensed under the **MIT License**.
