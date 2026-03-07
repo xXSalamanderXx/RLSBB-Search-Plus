@@ -27,6 +27,7 @@ Built for people who want to find releases faster without fighting the default l
 
 ---
 
+
 ### 🔤 Smart Text Matching
 
 - Case-insensitive matching
@@ -41,6 +42,7 @@ Built for people who want to find releases faster without fighting the default l
 
 ---
 
+
 ## Supported Domains 🌍
 
 Works across these domains:
@@ -51,7 +53,6 @@ Works across these domains:
 - `rlsbb.cc`
 - `rlsbb.in`
 
-----
 
 ## Why Use It 🚀
 
