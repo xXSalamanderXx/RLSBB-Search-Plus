@@ -132,6 +132,33 @@ The UI is improved without overdoing it:
   
 ---
 
+<p align="center">
+  <b>⭐ Star the repo • ☕ Support development • 🚀 Explore more projects</b>
+</p>
+
+## ⭐ Show Your Support
+
+If this repo has helped you, please consider giving it a **star** on GitHub!  
+It really helps show support, motivates future updates, and encourages continued development. 🚀
+
+Every ⭐ makes a difference and means a lot. Thanks for helping this project grow! 🙌
+
+## ☕ Support Development
+
+If you'd like to support my work even more, you can **buy me a coffee** here:  
+[☕ buymeacoffee.com/SinZZzz](https://buymeacoffee.com/SinZZzz)
+
+Your support helps keep development active and appreciated. 💙
+
+## 🔍 Check Out My Other Repos
+
+You might also like these projects:
+
+- [🦎 salamander-trackers](https://github.com/xXSalamanderXx/salamander-trackers)
+- [🎬 HDEncode-Search-Plus](https://github.com/xXSalamanderXx/HDEncode-Search-Plus)
+
+---
+
 ## Disclaimer
 
 This repository is provided for general educational and informational use only.
