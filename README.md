@@ -6,6 +6,10 @@ A userscript that upgrades the RLSBB browsing experience with smarter filtering,
 
 Built for people who want to find releases faster without fighting the default layout.
 
+[![Release](https://img.shields.io/github/v/release/xXSalamanderXx/RLSBB-Search-Plus?style=for-the-badge)](https://github.com/xXSalamanderXx/RLSBB-Search-Plus/releases) [![Top language](https://img.shields.io/github/languages/top/xXSalamanderXx/RLSBB-Search-Plus?style=for-the-badge)](https://github.com/xXSalamanderXx/RLSBB-Search-Plus) [![License](https://img.shields.io/github/license/xXSalamanderXx/RLSBB-Search-Plus?style=for-the-badge)](./LICENSE)
+
+---
+
 ## Highlights ✨
 
 - **Custom search** across loaded results
