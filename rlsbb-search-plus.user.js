@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RLSBB Search+
 // @namespace    https://rlsbb.ru/
-// @version      1.0.2
+// @version      1.0.3
 // @description  Filtering, live custom search, safer clear handling, custom pagination, keyword highlighting, and category switching for RLSBB
 // @author       xXSalamanderXx
 // @homepage     https://github.com/xXSalamanderXx/RLSBB-Search-Plus/
@@ -169,7 +169,6 @@
             }
 
             #f-progress-bar.fs-active {
-                width: 100% !important;
                 background: linear-gradient(
                     90deg,
                     rgba(255,122,0,0.08) 0%,
@@ -307,7 +306,7 @@
             }
 
             #f-category-note {
-                display: none;
+                display: block;
                 margin-top: 10px;
                 padding: 12px 14px;
                 border-radius: 12px;
@@ -345,6 +344,10 @@
         return window.location.origin;
     }
 
+    function getHomeUrl() {
+        return `${getCurrentOrigin()}/`;
+    }
+
     function getMoviesUrl() {
         return `${getCurrentOrigin()}/category/movies/`;
     }
@@ -357,19 +360,16 @@
         return window.location.pathname.replace(/\/+$/, '/');
     }
 
+    function isHomeCategoryPage() {
+        return getCurrentPath() === '/';
+    }
+
     function isMoviesCategoryPage() {
         return getCurrentPath().startsWith('/category/movies/');
     }
 
     function isTvShowsCategoryPage() {
         return getCurrentPath().startsWith('/category/tv-shows/');
-    }
-
-    function updateRecommendedUseNotice() {
-        const note = document.getElementById('f-category-note');
-        if (!note) return;
-        const shouldShow = !isMoviesCategoryPage() && !isTvShowsCategoryPage();
-        note.style.display = shouldShow ? 'block' : 'none';
     }
 
     function syncCategorySelectToLocation() {
@@ -380,11 +380,11 @@
             select.value = getMoviesUrl();
         } else if (isTvShowsCategoryPage()) {
             select.value = getTvShowsUrl();
+        } else if (isHomeCategoryPage()) {
+            select.value = getHomeUrl();
         } else {
             select.value = '';
         }
-
-        updateRecommendedUseNotice();
     }
 
     function findPostItems(scope = document) {
@@ -732,7 +732,21 @@
         const wrap = document.getElementById('f-progress-wrap');
         const bar = document.getElementById('f-progress-bar');
         if (wrap) wrap.style.display = 'block';
-        if (bar) bar.classList.add('fs-active');
+        if (bar) {
+            bar.style.width = '2%';
+            bar.classList.add('fs-active');
+        }
+    }
+
+    function updateProgress(current, max) {
+        const bar = document.getElementById('f-progress-bar');
+        if (!bar) return;
+        let pct = 0;
+        if (max > 0) {
+            pct = (current / max) * 100;
+        }
+        pct = Math.min(100, Math.max(2, pct));
+        bar.style.width = pct + '%';
     }
 
     function hideProgress(immediate = false) {
@@ -741,7 +755,10 @@
 
         const done = () => {
             if (wrap) wrap.style.display = 'none';
-            if (bar) bar.classList.remove('fs-active');
+            if (bar) {
+                bar.classList.remove('fs-active');
+                bar.style.width = '0%';
+            }
         };
 
         if (immediate) done();
@@ -1004,6 +1021,30 @@
         }
     }
 
+    function extractMaxPages(doc = document) {
+        const el = findNativePaginationElement(doc);
+        if (!el) return 1;
+
+        let max = 1;
+        const textNodes = Array.from(el.querySelectorAll('.pages, span, a'));
+        for (const node of textNodes) {
+            const text = (node.textContent || '').trim();
+
+            const ofMatch = text.match(/of\s+([0-9,]+)/i);
+            if (ofMatch) {
+                const parsed = parseInt(ofMatch[1].replace(/,/g, ''), 10);
+                if (!isNaN(parsed) && parsed > max) max = parsed;
+            }
+
+            const numMatch = text.match(/^[0-9,]+$/);
+            if (numMatch) {
+                const parsed = parseInt(numMatch[0].replace(/,/g, ''), 10);
+                if (!isNaN(parsed) && parsed > max) max = parsed;
+            }
+        }
+        return max;
+    }
+
     async function resetResultsToFirstPage(container, signal, runId) {
         const itemGrid = getActiveResultsGrid(container);
         const firstPageUrl = buildPageUrl(1);
@@ -1016,12 +1057,14 @@
             cache: 'no-store'
         });
 
-        if (!res.ok || signal.aborted || runId !== searchRunId) return false;
+        if (!res.ok || signal.aborted || runId !== searchRunId) return { success: false, maxPages: 1 };
 
         const html = await res.text();
-        if (signal.aborted || runId !== searchRunId) return false;
+        if (signal.aborted || runId !== searchRunId) return { success: false, maxPages: 1 };
 
         const doc = new DOMParser().parseFromString(html, 'text/html');
+        const maxPages = extractMaxPages(doc);
+
         const nativePager = findNativePaginationElement(doc);
         if (nativePager) nativePaginationHTML = nativePager.outerHTML;
 
@@ -1030,7 +1073,7 @@
 
         const sourceGrid = pickResultsGrid(doc);
         const fetchedItems = findPostItems(sourceGrid);
-        if (!fetchedItems.length) return false;
+        if (!fetchedItems.length) return { success: false, maxPages: 1 };
 
         const fragment = document.createDocumentFragment();
         seenReleaseLinks.clear();
@@ -1060,7 +1103,7 @@
         applyFilters(container);
         syncCategorySelectToLocation();
 
-        return true;
+        return { success: true, maxPages };
     }
 
     async function loadAllPages(container) {
@@ -1073,18 +1116,21 @@
 
         let loaded = 0;
         let stopReason = 'complete';
+        let totalSearchPages = 1;
 
         try {
             baseListingUrl = getBaseListingUrl();
             resultsGrid = getActiveResultsGrid(container);
 
-            const firstPageLoaded = await resetResultsToFirstPage(container, signal, runId);
-            if (!firstPageLoaded) {
+            const firstPageResult = await resetResultsToFirstPage(container, signal, runId);
+            if (!firstPageResult || !firstPageResult.success) {
                 stopReason = signal.aborted ? 'stopped' : 'complete';
                 return;
             }
 
+            totalSearchPages = firstPageResult.maxPages || 1;
             loaded = 1;
+            updateProgress(loaded, totalSearchPages);
 
             const firstState = applyFilters(container);
             if (getFilterValues().search) {
@@ -1158,6 +1204,7 @@
 
                 resultsGrid = itemGrid;
                 loaded++;
+                updateProgress(loaded, Math.max(totalSearchPages, loaded));
 
                 const state = applyFilters(container);
                 if (getFilterValues().search) {
@@ -1287,6 +1334,7 @@
                 <div class="fs-toolbar-right">
                     <select id="f-category" style="${INPUT_STYLE} width:250px;">
                         <option value="">Select Category (redirects)</option>
+                        <option value="${getHomeUrl()}">Home</option>
                         <option value="${getMoviesUrl()}">Movies</option>
                         <option value="${getTvShowsUrl()}">TV Shows</option>
                     </select>
@@ -1365,7 +1413,7 @@
 
             <div id="f-progress-wrap" style="display:none; margin-top:6px;">
                 <div style="background:#21262d; border-radius:999px; height:6px; overflow:hidden;">
-                    <div id="f-progress-bar" style="height:100%; width:100%; border-radius:999px;"></div>
+                    <div id="f-progress-bar" style="height:100%; width:0%; border-radius:999px; transition:width 0.3s ease;"></div>
                 </div>
             </div>
 
