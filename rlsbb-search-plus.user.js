@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RLSBB Search+
 // @namespace    https://rlsbb.ru/
-// @version      1.0.4
+// @version      1.0.5
 // @description  Filtering, live custom search, safer clear handling, custom pagination, keyword highlighting, and category switching for RLSBB
 // @author       xXSalamanderXx
 // @homepage     https://github.com/xXSalamanderXx/RLSBB-Search-Plus/
@@ -163,13 +163,9 @@
                 margin: 10px 0;
             }
 
-            /* REMOVED: The animated scan CSS */
-
-            /* NEW: Solid, glowing progress bar */
             #f-progress-bar.fs-active {
                 background: linear-gradient(90deg, #ff6a00 0%, #ff9b33 100%);
                 box-shadow: 0 0 10px rgba(255, 122, 0, 0.8), 0 0 5px rgba(255, 122, 0, 0.5) inset;
-                /* Keep the width transition defined in the HTML */
             }
 
             .fs-search-match {
@@ -334,15 +330,20 @@
     }
 
     function getHomeUrl() {
-        return `${getCurrentOrigin()}/`;
+        // Strip out specific subdomains if needed, otherwise rely on the base domain mapping
+        const origin = getCurrentOrigin();
+        if (origin.includes('search.')) {
+            return origin.replace('search.', '');
+        }
+        return `${origin}/`;
     }
 
     function getMoviesUrl() {
-        return `${getCurrentOrigin()}/category/movies/`;
+        return `${getHomeUrl()}category/movies/`;
     }
 
     function getTvShowsUrl() {
-        return `${getCurrentOrigin()}/category/tv-shows/`;
+        return `${getHomeUrl()}category/tv-shows/`;
     }
 
     function getCurrentPath() {
@@ -369,7 +370,7 @@
             select.value = getMoviesUrl();
         } else if (isTvShowsCategoryPage()) {
             select.value = getTvShowsUrl();
-        } else if (isHomeCategoryPage()) {
+        } else if (isHomeCategoryPage() && !window.location.hostname.startsWith('search.')) {
             select.value = getHomeUrl();
         } else {
             select.value = '';
@@ -455,7 +456,8 @@
     }
 
     function findNativePaginationElement(doc = document) {
-        return doc.querySelector('.wp-pagenavi, .pagination, .nav-links, .navigation.pagination, .page-numbers, .paging-navigation');
+        // Dropped inner specific tags like .page-numbers as they ruin outer HTML extraction
+        return doc.querySelector('.wp-pagenavi, .pagination, .nav-links, .navigation.pagination, .paging-navigation');
     }
 
     function captureNativePagination() {
@@ -734,7 +736,7 @@
         if (max > 0) {
             pct = (current / max) * 100;
         }
-        // Ensure it visually fills up based on the percentage
+        // Ensure it doesn't extend beyond 100% bounds visually
         pct = Math.min(100, Math.max(2, pct)); 
         bar.style.width = pct + '%';
     }
@@ -1011,50 +1013,48 @@
         }
     }
 
-    // NEW: Improved logic to find the max page number from the pagination links
+    // UPDATED: Extremely robust method to scan the whole doc specifically for pagination identifiers
     function extractMaxPages(doc = document) {
-        const el = findNativePaginationElement(doc);
-        if (!el) return 1;
-
         let max = 1;
 
-        // Try to find the link with class "last" which usually contains the total page number
-        const lastPageLink = el.querySelector('a.last');
-        if (lastPageLink) {
-            // RLSBB structure is usually: <a class="last" href=".../page/X/">Last »</a>
-            // The text content might be "Last »", so we check the href attribute
-            const href = lastPageLink.getAttribute('href');
-            if (href) {
-                const match = href.match(/\/page\/(\d+)\/?/);
-                if (match) {
-                    const parsed = parseInt(match[1], 10);
-                    if (!isNaN(parsed) && parsed > max) {
-                        return parsed;
-                    }
+        // 1. Look for all pagination link hrefs
+        const pageLinks = doc.querySelectorAll('.wp-pagenavi a, .pagination a, .nav-links a, a.page-numbers, .paging-navigation a, a.last');
+        for (const link of pageLinks) {
+            const href = link.getAttribute('href') || '';
+            const hrefMatch = href.match(/\/page\/(\d+)\/?/i) || href.match(/[?&]paged=(\d+)/i);
+            if (hrefMatch) {
+                const parsed = parseInt(hrefMatch[1], 10);
+                if (!isNaN(parsed) && parsed > max) {
+                    max = parsed;
                 }
             }
         }
 
-        // Fallback: Check all pagination elements for numbers
-        const textNodes = Array.from(el.querySelectorAll('.pages, span, a'));
-        for (const node of textNodes) {
-            const text = (node.textContent || '').trim();
-
+        // 2. Look for text-based indicators within possible pagination wrappers 
+        const pageElements = doc.querySelectorAll('.wp-pagenavi, .wp-pagenavi span, .pagination, .pages, .page-numbers, span.page-numbers');
+        for (const el of pageElements) {
+            const text = (el.textContent || '').trim();
             const ofMatch = text.match(/of\s+([0-9,]+)/i);
             if (ofMatch) {
                 const parsed = parseInt(ofMatch[1].replace(/,/g, ''), 10);
-                if (!isNaN(parsed) && parsed > max) max = parsed;
+                if (!isNaN(parsed) && parsed > max) {
+                    max = parsed;
+                }
             }
-
-            // Also check for individual page numbers like <a class="page-numbers">50</a>
+            
+            // Checking standalone numbers (like the final 'Next' link neighbor)
             const numMatch = text.match(/^[0-9,]+$/);
             if (numMatch) {
                 const parsed = parseInt(numMatch[0].replace(/,/g, ''), 10);
-                if (!isNaN(parsed) && parsed > max) max = parsed;
+                if (!isNaN(parsed) && parsed > max) {
+                    max = parsed;
+                }
             }
         }
+
         return max;
     }
+
 
     async function resetResultsToFirstPage(container, signal, runId) {
         const itemGrid = getActiveResultsGrid(container);
@@ -1074,6 +1074,8 @@
         if (signal.aborted || runId !== searchRunId) return { success: false, maxPages: 1 };
 
         const doc = new DOMParser().parseFromString(html, 'text/html');
+        
+        // Compute max pages from the returned DOM 
         const maxPages = extractMaxPages(doc);
 
         const nativePager = findNativePaginationElement(doc);
