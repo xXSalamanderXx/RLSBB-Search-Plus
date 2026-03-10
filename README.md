@@ -1,6 +1,6 @@
 # RLSBB Search+ 🔎🟧
 
-[![RLSBB-Search-Plus.png](https://i.postimg.cc/QtPbV6Dn/RLSBB-Search-Plus.png)](https://postimg.cc/7G37Wnfg)
+[![RLSBB_Search+.png](https://i.postimg.cc/2y6c0xvP/RLSBB_Search+.png)](https://postimg.cc/ygMydcLP)
 
 A userscript that upgrades the RLSBB browsing experience with smarter filtering, category switching, custom search behavior, and a bright neon-orange UI.
 
