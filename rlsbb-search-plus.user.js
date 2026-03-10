@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RLSBB Search+
 // @namespace    https://rlsbb.ru/
-// @version      1.0.5
+// @version      1.0.6
 // @description  Filtering, live custom search, safer clear handling, custom pagination, keyword highlighting, and category switching for RLSBB
 // @author       xXSalamanderXx
 // @homepage     https://github.com/xXSalamanderXx/RLSBB-Search-Plus/
@@ -85,36 +85,80 @@
                 box-sizing: border-box;
                 overflow: visible;
                 margin: 0 0 28px 0;
-                padding: 14px 18px 18px 18px;
-                border-radius: 12px;
-                border: 1px solid rgba(255,255,255,0.10);
-                background: #0f1115;
+                padding: 16px 20px 20px 20px;
+                border-radius: 14px;
+                border: 1px solid rgba(255,255,255,0.08);
+                background: #0d1015;
                 color: #f3f4f6;
                 font-size: 13px;
                 box-shadow:
-                    0 6px 24px rgba(0,0,0,0.28),
-                    0 0 0 1px rgba(255,122,0,0.10) inset,
+                    0 6px 24px rgba(0,0,0,0.35),
+                    0 0 0 1px rgba(255,122,0,0.08) inset,
                     0 0 26px ${MAIN_BOX_GLOW},
-                    0 0 44px rgba(255,122,0,0.10);
+                    0 0 44px rgba(255,122,0,0.08);
                 transition: box-shadow 0.22s ease, transform 0.22s ease;
             }
 
             #${SCRIPT_ID}-bar:hover {
                 box-shadow:
-                    0 10px 28px rgba(0,0,0,0.34),
-                    0 0 0 1px rgba(255,122,0,0.14) inset,
+                    0 10px 28px rgba(0,0,0,0.40),
+                    0 0 0 1px rgba(255,122,0,0.12) inset,
                     0 0 34px ${MAIN_BOX_GLOW_HOVER},
-                    0 0 56px rgba(255,122,0,0.16);
+                    0 0 56px rgba(255,122,0,0.14);
             }
 
             #${SCRIPT_ID}-bar * {
                 box-sizing: border-box;
             }
 
+            /* Neon Flow Gradient Animation for Title */
+            @keyframes neonFlow {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+
+            .fs-title-neon {
+                font-size: 26px;
+                font-weight: 900;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                background: linear-gradient(270deg, #ff0055, #ff7a00, #ffcc00, #ff7a00, #ff0055);
+                background-size: 200% auto;
+                color: transparent;
+                -webkit-background-clip: text;
+                background-clip: text;
+                animation: neonFlow 4s linear infinite;
+                letter-spacing: 0.5px;
+                text-shadow: 0 0 12px rgba(255, 122, 0, 0.25);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                margin: 0;
+            }
+
+            #${SCRIPT_ID}-bar .fs-header-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            #${SCRIPT_ID}-bar .fs-filter-label {
+                font-size: 11px;
+                color: #8b949e;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                margin-bottom: 10px;
+                font-weight: 700;
+                display: block;
+            }
+
             #${SCRIPT_ID}-bar .fs-toolbar-row {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 8px;
+                gap: 10px;
                 align-items: center;
                 width: 100%;
                 min-width: 0;
@@ -123,20 +167,20 @@
             #${SCRIPT_ID}-bar .fs-toolbar-left {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 8px;
+                gap: 10px;
                 align-items: center;
                 min-width: 0;
-                flex: 1 1 420px;
+                flex: 1 1 auto;
             }
 
             #${SCRIPT_ID}-bar .fs-toolbar-right {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 8px;
+                gap: 10px;
                 align-items: center;
                 justify-content: flex-end;
                 min-width: 0;
-                flex: 1 1 280px;
+                flex: 0 0 auto;
             }
 
             #${SCRIPT_ID}-bar .fs-search-select {
@@ -159,8 +203,9 @@
             }
 
             #${SCRIPT_ID}-bar .fs-section-line {
-                border-top: 1px solid rgba(255,255,255,0.08);
-                margin: 10px 0;
+                border-top: 1px solid rgba(255,255,255,0.06);
+                margin: 14px 0;
+                width: 100%;
             }
 
             #f-progress-bar.fs-active {
@@ -292,19 +337,23 @@
 
             #f-category-note {
                 display: block;
-                margin-top: 10px;
-                padding: 12px 14px;
-                border-radius: 12px;
-                background: rgba(255, 140, 26, 0.92);
-                color: #000000;
-                font-size: 13px;
+                margin-top: 0px;
+                margin-bottom: 6px;
+                padding: 10px 14px;
+                border-radius: 8px;
+                background: rgba(255, 140, 26, 0.15);
+                border: 1px solid rgba(255, 140, 26, 0.3);
+                color: #e5e7eb;
+                font-size: 12px;
                 line-height: 1.5;
-                box-shadow:
-                    0 8px 20px rgba(0,0,0,0.16),
-                    0 0 0 1px rgba(0,0,0,0.10) inset;
             }
 
             @media (max-width: 980px) {
+                #${SCRIPT_ID}-bar .fs-header-row {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
                 #${SCRIPT_ID}-bar .fs-toolbar-left,
                 #${SCRIPT_ID}-bar .fs-toolbar-right {
                     flex: 1 1 100%;
@@ -330,7 +379,6 @@
     }
 
     function getHomeUrl() {
-        // Strip out specific subdomains if needed, otherwise rely on the base domain mapping
         const origin = getCurrentOrigin();
         if (origin.includes('search.')) {
             return origin.replace('search.', '');
@@ -456,7 +504,6 @@
     }
 
     function findNativePaginationElement(doc = document) {
-        // Dropped inner specific tags like .page-numbers as they ruin outer HTML extraction
         return doc.querySelector('.wp-pagenavi, .pagination, .nav-links, .navigation.pagination, .paging-navigation');
     }
 
@@ -736,7 +783,6 @@
         if (max > 0) {
             pct = (current / max) * 100;
         }
-        // Ensure it doesn't extend beyond 100% bounds visually
         pct = Math.min(100, Math.max(2, pct)); 
         bar.style.width = pct + '%';
     }
@@ -1013,11 +1059,9 @@
         }
     }
 
-    // UPDATED: Extremely robust method to scan the whole doc specifically for pagination identifiers
     function extractMaxPages(doc = document) {
         let max = 1;
 
-        // 1. Look for all pagination link hrefs
         const pageLinks = doc.querySelectorAll('.wp-pagenavi a, .pagination a, .nav-links a, a.page-numbers, .paging-navigation a, a.last');
         for (const link of pageLinks) {
             const href = link.getAttribute('href') || '';
@@ -1030,7 +1074,6 @@
             }
         }
 
-        // 2. Look for text-based indicators within possible pagination wrappers 
         const pageElements = doc.querySelectorAll('.wp-pagenavi, .wp-pagenavi span, .pagination, .pages, .page-numbers, span.page-numbers');
         for (const el of pageElements) {
             const text = (el.textContent || '').trim();
@@ -1042,7 +1085,6 @@
                 }
             }
             
-            // Checking standalone numbers (like the final 'Next' link neighbor)
             const numMatch = text.match(/^[0-9,]+$/);
             if (numMatch) {
                 const parsed = parseInt(numMatch[0].replace(/,/g, ''), 10);
@@ -1075,7 +1117,6 @@
 
         const doc = new DOMParser().parseFromString(html, 'text/html');
         
-        // Compute max pages from the returned DOM 
         const maxPages = extractMaxPages(doc);
 
         const nativePager = findNativePaginationElement(doc);
@@ -1288,15 +1329,15 @@
     }
 
     const INPUT_STYLE = `
-        background: #161b22;
+        background: #1a1f26;
         color: #f3f4f6;
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 6px;
-        padding: 5px 8px;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 8px;
+        padding: 5px 10px;
         font-size: 13px;
         outline: none;
         transition: border-color 0.2s;
-        height: 30px;
+        height: 32px;
         box-sizing: border-box;
     `;
 
@@ -1305,19 +1346,33 @@
         bar.id = `${SCRIPT_ID}-bar`;
 
         bar.innerHTML = `
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                <strong style="color:${ACCENT}; font-size:14px; letter-spacing:0.5px;">⚡ ${SCRIPT_NAME}</strong>
+            <div class="fs-header-row">
+                <div class="fs-title-neon">⚡ ${SCRIPT_NAME}</div>
+                
+                <select id="f-category" style="${INPUT_STYLE} width:250px; border-color: rgba(255,140,26,0.3); font-weight: 600;">
+                    <option value="">Select Category (redirects)</option>
+                    <option value="${getHomeUrl()}">Home</option>
+                    <option value="${getMoviesUrl()}">Movies</option>
+                    <option value="${getTvShowsUrl()}">TV Shows</option>
+                </select>
+            </div>
+            
+            <div id="f-category-note">
+                <strong>Recommended Use:</strong> First search on main site search and use this to narrow down your results.
             </div>
 
-            <div class="fs-toolbar-row">
+            <div class="fs-section-line"></div>
+            <span class="fs-filter-label">Filters - Modify these to get specific tailored results!</span>
+            
+            <div class="fs-toolbar-row" style="margin-bottom: 12px;">
                 <div class="fs-toolbar-left">
-                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap;">
-                        <input type="checkbox" id="f-dv" style="accent-color:${ACCENT};">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; white-space:nowrap;">
+                        <input type="checkbox" id="f-dv" style="accent-color:${ACCENT}; width:16px; height:16px;">
                         <span>Dolby Vision</span>
                     </label>
 
-                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap;">
-                        <input type="checkbox" id="f-hdr" style="accent-color:${ACCENT};">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; white-space:nowrap; margin-right: 6px;">
+                        <input type="checkbox" id="f-hdr" style="accent-color:${ACCENT}; width:16px; height:16px;">
                         <span>HDR</span>
                     </label>
 
@@ -1342,40 +1397,25 @@
                         <input type="number" id="f-maxsize" placeholder="Max GB" min="0"
                             style="${INPUT_STYLE} width:88px;">
                     </span>
-                </div>
 
-                <div class="fs-toolbar-right">
-                    <select id="f-category" style="${INPUT_STYLE} width:250px;">
-                        <option value="">Select Category (redirects)</option>
-                        <option value="${getHomeUrl()}">Home</option>
-                        <option value="${getMoviesUrl()}">Movies</option>
-                        <option value="${getTvShowsUrl()}">TV Shows</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="f-category-note">
-                <strong>Recommended Use:</strong> First search on main site search and use this to narrow down your results.
-            </div>
-
-            <div class="fs-section-line"></div>
-
-            <div class="fs-toolbar-row">
-                <div class="fs-toolbar-left">
                     <select id="f-group" class="fs-search-select" style="${INPUT_STYLE} width:175px;">
                         <option value="">All Release Groups</option>
                     </select>
+                </div>
+            </div>
 
+            <div class="fs-toolbar-row">
+                <div class="fs-toolbar-left" style="flex: 1 1 auto;">
                     <input type="text" id="f-search" class="fs-search-input" placeholder="Search anything..."
                         style="${INPUT_STYLE} width:100%;">
                 </div>
 
-                <div class="fs-toolbar-right">
+                <div class="fs-toolbar-right" style="flex: 0 0 auto;">
                     <button id="f-stop-loading"
                         style="display:none; background:transparent; color:#f59e0b;
                                border:1px solid rgba(245,158,11,0.35);
-                               border-radius:6px; padding:5px 12px; cursor:pointer; font-size:13px;
-                               height:30px; box-sizing:border-box; transition:all 0.2s; white-space:nowrap;">
+                               border-radius:8px; padding:5px 12px; cursor:pointer; font-size:13px; font-weight:600;
+                               height:32px; box-sizing:border-box; transition:all 0.2s; white-space:nowrap;">
                         Stop Page Loading
                     </button>
 
@@ -1383,8 +1423,8 @@
                         style="background:linear-gradient(180deg, ${SEARCH_ORANGE_TOP} 0%, ${SEARCH_ORANGE_BOTTOM} 100%);
                                color:#ffffff;
                                border:1px solid ${SEARCH_ORANGE_BORDER};
-                               border-radius:8px; padding:5px 16px; cursor:pointer; font-size:13px;
-                               font-weight:800; height:30px; box-sizing:border-box; transition:all 0.2s ease;
+                               border-radius:8px; padding:5px 18px; cursor:pointer; font-size:13px;
+                               font-weight:800; height:32px; box-sizing:border-box; transition:all 0.2s ease;
                                white-space:nowrap;
                                -webkit-text-stroke:0.9px rgba(0,0,0,0.98);
                                text-shadow:
@@ -1402,19 +1442,21 @@
                         Search
                     </button>
 
-                    <div style="width:1px; height:20px; background:#30363d;"></div>
+                    <div style="width:1px; height:22px; background:#30363d; margin: 0 4px;"></div>
 
                     <button id="f-clear"
                         style="background:transparent; color:#f87171;
                                border:1px solid rgba(248,113,113,0.35);
-                               border-radius:6px; padding:5px 12px; cursor:pointer; font-size:13px;
-                               height:30px; box-sizing:border-box; transition:all 0.2s; white-space:nowrap;">
+                               border-radius:8px; padding:5px 14px; cursor:pointer; font-size:13px; font-weight:600;
+                               height:32px; box-sizing:border-box; transition:all 0.2s; white-space:nowrap;">
                         Clear
                     </button>
                 </div>
             </div>
+            
+            <div class="fs-section-line"></div>
 
-            <div style="margin-top:12px;">
+            <div style="margin-top:6px;">
                 <div id="f-load-status"
                     style="color:#9ca3af; font-size:12px; line-height:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
             </div>
