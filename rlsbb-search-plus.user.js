@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RLSBB Search+
 // @namespace    https://rlsbb.ru/
-// @version      1.0.3
+// @version      1.0.4
 // @description  Filtering, live custom search, safer clear handling, custom pagination, keyword highlighting, and category switching for RLSBB
 // @author       xXSalamanderXx
 // @homepage     https://github.com/xXSalamanderXx/RLSBB-Search-Plus/
@@ -76,11 +76,6 @@
         const style = document.createElement('style');
         style.id = `${SCRIPT_ID}-styles`;
         style.textContent = `
-            @keyframes fs-activity-scan {
-                0% { background-position: 200% 0; }
-                100% { background-position: -200% 0; }
-            }
-
             #${SCRIPT_ID}-bar {
                 position: relative;
                 z-index: 999;
@@ -168,19 +163,13 @@
                 margin: 10px 0;
             }
 
+            /* REMOVED: The animated scan CSS */
+
+            /* NEW: Solid, glowing progress bar */
             #f-progress-bar.fs-active {
-                background: linear-gradient(
-                    90deg,
-                    rgba(255,122,0,0.08) 0%,
-                    rgba(255,122,0,0.24) 18%,
-                    rgba(255,122,0,0.55) 36%,
-                    #ff7a00 50%,
-                    rgba(255,122,0,0.55) 64%,
-                    rgba(255,122,0,0.24) 82%,
-                    rgba(255,122,0,0.08) 100%
-                );
-                background-size: 220% 100%;
-                animation: fs-activity-scan 1.15s linear infinite;
+                background: linear-gradient(90deg, #ff6a00 0%, #ff9b33 100%);
+                box-shadow: 0 0 10px rgba(255, 122, 0, 0.8), 0 0 5px rgba(255, 122, 0, 0.5) inset;
+                /* Keep the width transition defined in the HTML */
             }
 
             .fs-search-match {
@@ -745,7 +734,8 @@
         if (max > 0) {
             pct = (current / max) * 100;
         }
-        pct = Math.min(100, Math.max(2, pct));
+        // Ensure it visually fills up based on the percentage
+        pct = Math.min(100, Math.max(2, pct)); 
         bar.style.width = pct + '%';
     }
 
@@ -1021,11 +1011,31 @@
         }
     }
 
+    // NEW: Improved logic to find the max page number from the pagination links
     function extractMaxPages(doc = document) {
         const el = findNativePaginationElement(doc);
         if (!el) return 1;
 
         let max = 1;
+
+        // Try to find the link with class "last" which usually contains the total page number
+        const lastPageLink = el.querySelector('a.last');
+        if (lastPageLink) {
+            // RLSBB structure is usually: <a class="last" href=".../page/X/">Last »</a>
+            // The text content might be "Last »", so we check the href attribute
+            const href = lastPageLink.getAttribute('href');
+            if (href) {
+                const match = href.match(/\/page\/(\d+)\/?/);
+                if (match) {
+                    const parsed = parseInt(match[1], 10);
+                    if (!isNaN(parsed) && parsed > max) {
+                        return parsed;
+                    }
+                }
+            }
+        }
+
+        // Fallback: Check all pagination elements for numbers
         const textNodes = Array.from(el.querySelectorAll('.pages, span, a'));
         for (const node of textNodes) {
             const text = (node.textContent || '').trim();
@@ -1036,6 +1046,7 @@
                 if (!isNaN(parsed) && parsed > max) max = parsed;
             }
 
+            // Also check for individual page numbers like <a class="page-numbers">50</a>
             const numMatch = text.match(/^[0-9,]+$/);
             if (numMatch) {
                 const parsed = parseInt(numMatch[0].replace(/,/g, ''), 10);
