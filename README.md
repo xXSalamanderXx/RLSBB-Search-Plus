@@ -160,6 +160,7 @@ You might also like these projects:
 
 - [🦎 salamander-trackers](https://github.com/xXSalamanderXx/salamander-trackers)
 - [🎬 HDEncode-Search-Plus](https://github.com/xXSalamanderXx/HDEncode-Search-Plus)
+- [🦁 SlimBrave](https://github.com/xXSalamanderXx/SlimBrave)
 
 ---
 
