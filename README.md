@@ -6,6 +6,8 @@ A userscript that upgrades the RLSBB browsing experience with smarter filtering,
 
 Built for people who want to find releases faster without fighting the default layout.
 
+[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://buymeacoffee.com/SinZZzz)
+
 [![Release](https://img.shields.io/github/v/release/xXSalamanderXx/RLSBB-Search-Plus?style=for-the-badge)](https://github.com/xXSalamanderXx/RLSBB-Search-Plus/releases) [![Top language](https://img.shields.io/github/languages/top/xXSalamanderXx/RLSBB-Search-Plus?style=for-the-badge)](https://github.com/xXSalamanderXx/RLSBB-Search-Plus) [![License](https://img.shields.io/github/license/xXSalamanderXx/RLSBB-Search-Plus?style=for-the-badge)](./LICENSE)
 
 ---
@@ -161,6 +163,7 @@ You might also like these projects:
 - [🦎 salamander-trackers](https://github.com/xXSalamanderXx/salamander-trackers)
 - [🎬 HDEncode-Search-Plus](https://github.com/xXSalamanderXx/HDEncode-Search-Plus)
 - [🦁 SlimBrave](https://github.com/xXSalamanderXx/SlimBrave)
+- [📷️ Caesium Image Compressor - Linux](https://github.com/xXSalamanderXx/caesium-image-compressor-linux)
 
 ---
 
